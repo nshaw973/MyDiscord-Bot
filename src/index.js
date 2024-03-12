@@ -1,6 +1,7 @@
 require("dotenv").config();
 
 const { Client, IntentsBitField } = require("discord.js");
+const eventHandler = require("./handlers/eventHandler");
 const TOKEN = process.env.TOKEN;
 
 const client = new Client({
@@ -12,9 +13,7 @@ const client = new Client({
   ],
 });
 
-client.on("ready", (c) => {
-    console.log(`${c.user.username} is online.`);
-  });
+eventHandler(client);
 
 //Starts the bot
 client.login(TOKEN);
