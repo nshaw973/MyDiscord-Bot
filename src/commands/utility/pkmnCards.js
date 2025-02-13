@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const fetchPkmn = require("../../utils/API/pkmnTCG"); // Import the module
+const pkmnSets = require("../../utils/lists/pkmnSets");
 
 const getValue = (prices) => {
   if (!prices || Object.keys(prices).length === 0) {
@@ -16,7 +17,11 @@ module.exports = {
     .setName("open-pack")
     .setDescription("Let's the user open a pack")
     .addStringOption((option) =>
-      option.setName("set").setDescription("The set name").setRequired(true)
+      option
+        .setName("set")
+        .setDescription("The set name")
+        .setRequired(true)
+        .addChoices(...pkmnSets)
     ), // Ensure the option is returned
   async execute(interaction) {
     await interaction.deferReply(); // Defer the reply while fetching data
@@ -34,7 +39,7 @@ module.exports = {
       const pkmn = await fetchPkmn.getSet(pkmnSet);
       console.log(pkmn);
       const { name, images, rarity, subtype, tcgplayer, set } = pkmn;
-      const marketValue = getValue(tcgplayer.prices)
+      const marketValue = getValue(tcgplayer.prices);
       const embed = {
         title: `Congrats you pulled a ${name}`,
         image: {
@@ -44,7 +49,11 @@ module.exports = {
           { name: "Name:", value: name, inline: true },
           { name: "Rarity:", value: rarity, inline: true },
           { name: "Market:", value: marketValue, inline: true },
-          { name: "More Info", value: `[View on TcgPlayer](${tcgplayer.url})`, inline: false }
+          {
+            name: "More Info",
+            value: `[View on TcgPlayer](${tcgplayer.url})`,
+            inline: false,
+          },
         ],
         color: 0xffd700, // Gold color
         footer: {
