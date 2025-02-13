@@ -1,4 +1,4 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, ChannelType } = require("discord.js");
 const fetchPkmn = require("../../utils/API/pkmnTCG"); // Import the module
 const pkmnSets = require("../../utils/lists/pkmnSets");
 
@@ -12,6 +12,8 @@ const getValue = (prices) => {
   return `$${marketValue}`;
 };
 
+const ALLOWED_CHANNEL = "pkmn-cards";
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("open-pack")
@@ -24,6 +26,38 @@ module.exports = {
         .addChoices(...pkmnSets)
     ), // Ensure the option is returned
   async execute(interaction) {
+    // Can only be used in the pkmn-cards channel
+    let allowedChannel = interaction.guild.channels.cache.find(
+      (channel) => channel.name === ALLOWED_CHANNEL
+    );
+
+    // If the channel doesn't exist, create it
+    if (!allowedChannel) {
+      try {
+        allowedChannel = await interaction.guild.channels.create({
+          name: ALLOWED_CHANNEL,
+          type: ChannelType.GuildText,
+          reason: "Channel for bot commands",
+        });
+        return interaction.reply({
+            content: `${allowedChannel} has been created.`,
+            ephemeral: true,
+          });
+      } catch (error) {
+        console.error("Error creating channel:", error);
+        return interaction.reply({
+          content:
+            "An error occurred while creating the channel. Please contact an administrator.",
+          ephemeral: true,
+        });
+      }
+    }
+    if (interaction.channelId !== allowedChannel.id) {
+      return interaction.reply({
+        content: `This command can only be used in ${allowedChannel}.`, // Mention the allowed channel
+        ephemeral: true,
+      });
+    }
     await interaction.deferReply(); // Defer the reply while fetching data
 
     const pkmnSet = interaction.options.getString("set");
