@@ -1,6 +1,11 @@
 require("dotenv").config();
+const express = require('express');
 const fs = require('fs')
 const path = require('path')
+
+const db = require('./config/connection');
+const app = express();
+const PORT = process.env.PORT || 3001;
 
 const {
   Client,
@@ -8,7 +13,7 @@ const {
   GatewayIntentBits,
   Collection
 } = require("discord.js");
-const TOKEN = process.env.Token;
+const TOKEN = process.env.TOKEN;
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -62,4 +67,15 @@ client.once(Events.ClientReady, readyClient => {
 })
 
 //Starts the bot
-client.login(TOKEN);
+
+
+const startApplication = async () => {
+  db.once('open', () => {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🌍 Now listening on localhost:${PORT}`);
+    });
+    client.login(TOKEN);
+  });
+} 
+
+startApplication();

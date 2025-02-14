@@ -9,7 +9,7 @@ const getRandomCard = (data) => {
 module.exports = {
   getSet: async (query) => {
     try {
-      const result = await pokemon.card.where({ q: `set.name:${query}` })
+      const result = await pokemon.card.where({ q: `set.id:${query}` })
       const pkmn = result.data[getRandomCard(result.data)]
       return pkmn; // Return the result instead of logging it
     } catch (error) {
