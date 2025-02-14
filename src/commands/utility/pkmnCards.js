@@ -58,17 +58,17 @@ module.exports = {
         ephemeral: true,
       });
     }
-    await interaction.deferReply(); // Defer the reply while fetching data
 
     const pkmnSet = interaction.options.getString("set");
 
     // Validate the set input
     if (!pkmnSet || pkmnSet.trim() === "") {
-      await interaction.editReply("Please provide a valid set name.");
+      await interaction.reply("Please provide a valid set name.");
       return;
     }
 
     try {
+      await interaction.reply("Opening your pack!");
       // Call the getSet function and wait for the result
       const pkmn = await fetchPkmn.getSet(pkmnSet);
       console.log(pkmn);
