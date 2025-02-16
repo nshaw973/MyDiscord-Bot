@@ -1,24 +1,18 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { User } = require("../../schemas/index");
-const dailyAmount = 5.00;
+const { getUser, inGuild } = require("../../utils/utils");
+const dailyAmount = 5.0;
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("get-daily")
     .setDescription("Get your daily points!"),
   async execute(interaction) {
-    if (!interaction.inGuild()) {
-      interaction.reply({
-        content: "This command can only be executed inside a server",
-        ephemeral: true,
-      });
-      return;
-    }
+    if (!inGuild(interaction)) return;
     try {
       await interaction.deferReply();
-      let user = await User.findOne({
-        userId: interaction.member.id,
-      });
+      // Gets the user, or creates one.
+      const { user, cardCollection } = await getUser(interaction)
+      // Checks to see if the user has received a daily yet
       if (user) {
         const lastDailyDate = user.lastDailyCollected?.toDateString();
         const currentDate = new Date().toDateString();
@@ -30,16 +24,16 @@ module.exports = {
           });
           return;
         }
-      } else {
-        user = new User({
-          userId: interaction.member.id,
-        });
       }
-      user.balance += dailyAmount;
+      // Updates the users balance
+      const newAmount = parseFloat(user.balance) + dailyAmount;
+      user.balance = newAmount.toFixed(2);
       user.lastDailyCollected = new Date();
+      // Save the balance for the user
       await user.save();
+      // Shows the user their new balance
       await interaction.editReply({
-        content: `${dailyAmount} has been added to your balance. \nNew balance: ${user.balance}`,
+        content: `$${dailyAmount} has been added to your balance. \nNew balance: $${user.balance}`,
         ephemeral: true,
       });
     } catch (error) {

@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, ChannelType } = require("discord.js");
 const fetchPkmn = require("../../utils/API/pkmnTCG"); // Import the module
 const pkmnSets = require("../../utils/lists/pkmnSets");
+const { getUser, addToCollection } = require("../../utils/utils");
 
 const getValue = (prices) => {
   if (!prices || Object.keys(prices).length === 0) {
@@ -13,11 +14,12 @@ const getValue = (prices) => {
 };
 
 const ALLOWED_CHANNEL = "pkmn-cards";
+const cost = 3.0;
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("open-pack")
-    .setDescription("Let's the user open a pack")
+    .setDescription(`Let's the user open a pack for ${cost}`)
     .addStringOption((option) =>
       option
         .setName("set")
@@ -26,7 +28,7 @@ module.exports = {
         .addChoices(...pkmnSets)
     ), // Ensure the option is returned
   async execute(interaction) {
-    // Can only be used in the pkmn-cards channel
+    // Can only be used in the pkmnData-cards channel
     let allowedChannel = interaction.guild.channels.cache.find(
       (channel) => channel.name === ALLOWED_CHANNEL
     );
@@ -40,9 +42,9 @@ module.exports = {
           reason: "Channel for bot commands",
         });
         return interaction.reply({
-            content: `${allowedChannel} has been created.`,
-            ephemeral: true,
-          });
+          content: `${allowedChannel} has been created.`,
+          ephemeral: true,
+        });
       } catch (error) {
         console.error("Error creating channel:", error);
         return interaction.reply({
@@ -52,11 +54,21 @@ module.exports = {
         });
       }
     }
+    //Checks to see if it's being executed in the correct channel
     if (interaction.channelId !== allowedChannel.id) {
       return interaction.reply({
         content: `This command can only be used in ${allowedChannel}.`, // Mention the allowed channel
         ephemeral: true,
       });
+    }
+    // Get the user
+    const { user , cardCollection}  = await getUser(interaction)
+    if (user.balance < cost) {
+      interaction.reply({
+        content:
+          "Not enough money to open a pack! Grab your daily, or wait till tomorrow!",
+      });
+      return;
     }
 
     const pkmnSet = interaction.options.getString("set");
@@ -68,11 +80,17 @@ module.exports = {
     }
 
     try {
-      await interaction.reply("Opening your pack!");
+      user.balance -= cost;
+      const deductedAmount = parseFloat(user.balance);
+      await interaction.reply(
+        `Opening your pack! Balance: $${deductedAmount.toFixed(2)}`
+      );
+
       // Call the getSet function and wait for the result
-      const pkmn = await fetchPkmn.getSet(pkmnSet);
-      console.log(pkmn);
-      const { name, images, rarity, subtype, tcgplayer, set } = pkmn;
+      const pkmnData = await fetchPkmn.getSet(pkmnSet);
+      const { name, images, rarity, tcgplayer, set } = pkmnData;
+      await addToCollection(pkmnData, cardCollection)
+
       const marketValue = getValue(tcgplayer.prices);
       const embed = {
         title: `Congrats you pulled a ${name}`,
@@ -97,8 +115,18 @@ module.exports = {
         timestamp: new Date().toISOString(),
       };
       // Send the result back to the user
+
       await interaction.editReply({
         embeds: [embed],
+      });
+      const removeSign = marketValue.replace("$", "");
+      const amount = parseFloat(removeSign);
+      const newAmount = parseFloat(user.balance) + amount;
+      user.balance = newAmount.toFixed(2);
+      await user.save();
+      await interaction.followUp({
+        content: `Balance updated: $${user.balance}`,
+        ephemeral: true,
       });
     } catch (error) {
       console.error("Error fetching Pokémon set:", error);

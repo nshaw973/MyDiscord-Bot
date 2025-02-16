@@ -1,4 +1,5 @@
-const { Schema, model } = require("mongoose");
+const mongoose = require("mongoose");
+const { Schema, model } = mongoose;
 
 const userSchema = new Schema(
   {
@@ -7,16 +8,34 @@ const userSchema = new Schema(
       required: true,
       unique: true,
     },
-
+    username: {
+      type: String,
+      required: true,
+    },
     balance: {
-      type: Number,
-      default: 0,
+      type: Schema.Types.Decimal128,
+      default: 0.0,
+      validate: {
+        validator: function (value) {
+          // Check if the value has up to 2 decimal places
+          return /^\d+(\.\d{1,2})?$/.test(value.toString());
+        },
+        message: "Balance must have up to 2 decimal places.",
+      },
     },
     lastDailyCollected: {
       type: Date,
     },
-    cardCollection: {
+    cardCollection: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "CardCollection",
+      },
+    ],
+    password: {
       type: String,
+      required: true,
+      unique: true,
     },
   },
   { timestamps: true }

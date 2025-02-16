@@ -1,23 +1,23 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { getUser, inGuild } = require("../../utils/utils");
+const { getUser, inGuild, goToSite } = require("../../utils/utils");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("view-balance")
-    .setDescription("View your current balance."),
+    .setName("view-collection")
+    .setDescription("View your collection."),
   async execute(interaction) {
     if(!inGuild(interaction)) return;
     try {
       // Initialize
       await interaction.reply({
-        content: "Retrieving your balance...",
+        content: "Retrieving your collection link...",
         ephemeral: true
       });
       // Get User, or create a new one.
       const { user, cardCollection } = await getUser(interaction)
       // Returns the users balance
       await interaction.editReply({
-        content: `Hi ${interaction.member.displayName}! \nYour current balance is: $${user.balance}`,
+        content: `Hi ${interaction.member.displayName}! \n[View your Collection here!](${goToSite('collection', user)})`,
         ephemeral: true,
       });
     } catch (error) {
