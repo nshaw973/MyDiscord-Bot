@@ -1,14 +1,14 @@
 const mongoose = require("mongoose");
-const { Schema, model } = mongoose
+const { Schema, model } = mongoose;
 
 const cardCollectionSchema = new Schema({
   userId: {
-    type: String,
+    type: Schema.Types.ObjectId, // Use ObjectId to reference the User model
     ref: 'User',
     required: true,
   },
   cardIds: [{
-    type: String,
+    type: Schema.Types.ObjectId, // Use ObjectId to reference the Card model
     ref: 'Card',
   }],
 });

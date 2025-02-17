@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-const { Schema, model } = mongoose;
+const { Schema, model } = mongoose; // Destructure Schema and model from mongoose
 
 const userSchema = new Schema(
   {
@@ -40,6 +40,7 @@ const userSchema = new Schema(
   },
   { timestamps: true }
 );
+
 
 const User = model("User", userSchema);
 

@@ -2,27 +2,40 @@ const { User, CardCollection, Card } = require("./../schemas/index");
 const url = process.env.url || "http://localhost:3000";
 module.exports = {
   getUser: async (interaction) => {
+    // Fetch user by userId, which is a string
     let user = await User.findOne({
-      userId: interaction.member.id,
+      userId: interaction.member.id,  // Use userId (string) here
     });
-    let cardCollection = await CardCollection.findOne({
-      userId: interaction.member.id
-    })
+  
+    // If no user is found, create a new one along with a CardCollection
     if (!user) {
-      cardCollection = new CardCollection({
-        userId: interaction.member.id,
-        cardIds: []
-      });
       user = new User({
-        userId: interaction.member.id,
+        userId: interaction.member.id, // userId as a string
         username: interaction.user.username,
         password: Math.random().toString(36).slice(2, 10),
         balance: 5.0,
-        cardCollection: cardCollection
       });
-
+  
+      // Create a new CardCollection document
+      const cardCollection = new CardCollection({
+        userId: user._id,  // This references MongoDB's ObjectId (_id) of the User
+        cardIds: [],
+      });
+  
+      // Associate the CardCollection with the User
+      user.cardCollection.push(cardCollection._id);
+  
+      // Save both the User and CardCollection
+      await cardCollection.save();
+      await user.save();
     }
-    return {user, cardCollection};
+  
+    // Retrieve the cardCollection based on the user's _id
+    const cardCollection = await CardCollection.findOne({
+      userId: user._id,  // Use user._id for CardCollection reference
+    });
+  
+    return { user, cardCollection };
   },
   addToCollection: async (pkmnData, cardCollection) => {
     const { id, name, set, images, tcgplayer } = pkmnData;
@@ -46,7 +59,7 @@ module.exports = {
       });
     }
     await pkmn.save()
-    cardCollection.cardIds.push(pkmn.cardId)
+    cardCollection.cardIds.push(pkmn._id)
     await cardCollection.save();
   },
   inGuild: async (interaction) => {
