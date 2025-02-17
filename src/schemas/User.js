@@ -1,5 +1,5 @@
-const mongoose = require("mongoose");
-const { Schema, model } = mongoose; // Destructure Schema and model from mongoose
+const mongoose = require('mongoose');
+const { Schema, model } = mongoose;
 
 const userSchema = new Schema(
   {
@@ -17,7 +17,6 @@ const userSchema = new Schema(
       default: 0.0,
       validate: {
         validator: function (value) {
-          // Check if the value has up to 2 decimal places
           return /^\d+(\.\d{1,2})?$/.test(value.toString());
         },
         message: "Balance must have up to 2 decimal places.",
@@ -29,7 +28,7 @@ const userSchema = new Schema(
     cardCollection: [
       {
         type: Schema.Types.ObjectId,
-        ref: "CardCollection",
+        ref: 'Card',
       },
     ],
     password: {
@@ -41,7 +40,6 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-
-const User = model("User", userSchema);
+const User = model('User', userSchema);
 
 module.exports = User;

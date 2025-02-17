@@ -14,30 +14,14 @@ module.exports = {
         username: interaction.user.username,
         password: Math.random().toString(36).slice(2, 10),
         balance: 5.0,
+        cardCollection: []
       });
-  
-      // Create a new CardCollection document
-      const cardCollection = new CardCollection({
-        userId: user._id,  // This references MongoDB's ObjectId (_id) of the User
-        cardIds: [],
-      });
-  
-      // Associate the CardCollection with the User
-      user.cardCollection.push(cardCollection._id);
-  
-      // Save both the User and CardCollection
-      await cardCollection.save();
       await user.save();
     }
   
-    // Retrieve the cardCollection based on the user's _id
-    const cardCollection = await CardCollection.findOne({
-      userId: user._id,  // Use user._id for CardCollection reference
-    });
-  
-    return { user, cardCollection };
+    return { user };
   },
-  addToCollection: async (pkmnData, cardCollection) => {
+  addToCollection: async (pkmnData, user) => {
     const { id, name, set, images, tcgplayer } = pkmnData;
     let pkmn = await Card.findOne({
       cardId: pkmnData.id,
@@ -59,8 +43,8 @@ module.exports = {
       });
     }
     await pkmn.save()
-    cardCollection.cardIds.push(pkmn._id)
-    await cardCollection.save();
+    user.cardCollection.push(pkmn._id)
+    await user.save();
   },
   inGuild: async (interaction) => {
     if (!interaction.inGuild()) {

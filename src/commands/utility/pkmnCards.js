@@ -62,7 +62,7 @@ module.exports = {
       });
     }
     // Get the user
-    const { user , cardCollection}  = await getUser(interaction)
+    const { user }  = await getUser(interaction)
     if (user.balance < cost) {
       interaction.reply({
         content:
@@ -89,7 +89,7 @@ module.exports = {
       // Call the getSet function and wait for the result
       const pkmnData = await fetchPkmn.getSet(pkmnSet);
       const { name, images, rarity, tcgplayer, set } = pkmnData;
-      await addToCollection(pkmnData, cardCollection)
+      await addToCollection(pkmnData, user)
 
       const marketValue = getValue(tcgplayer.prices);
       const embed = {
