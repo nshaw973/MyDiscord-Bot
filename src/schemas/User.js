@@ -12,15 +12,12 @@ const userSchema = new Schema(
       type: String,
       required: true,
     },
+    avatar: {
+      type: String
+    },
     balance: {
       type: Schema.Types.Decimal128,
-      default: 0.0,
-      validate: {
-        validator: function (value) {
-          return /^\d+(\.\d{1,2})?$/.test(value.toString());
-        },
-        message: "Balance must have up to 2 decimal places.",
-      },
+      default: 5.0
     },
     lastDailyCollected: {
       type: Date,
@@ -31,6 +28,10 @@ const userSchema = new Schema(
         ref: 'Card',
       },
     ],
+    collectionWorth: {
+      type: Schema.Types.Decimal128,
+      default: 0.0
+    },
     password: {
       type: String,
       required: true,

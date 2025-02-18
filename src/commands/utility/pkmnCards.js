@@ -1,20 +1,11 @@
 const { SlashCommandBuilder, ChannelType } = require("discord.js");
 const fetchPkmn = require("../../utils/API/pkmnTCG"); // Import the module
 const pkmnSets = require("../../utils/lists/pkmnSets");
-const { getUser, addToCollection } = require("../../utils/utils");
+const { getUser, addToCollection, getValue, getCardValue } = require("../../utils/utils");
 
-const getValue = (prices) => {
-  if (!prices || Object.keys(prices).length === 0) {
-    return "No price data available";
-  }
-  const keys = Object.keys(prices);
-  const lastKey = keys[keys.length - 1];
-  const marketValue = prices[lastKey].market;
-  return `$${marketValue}`;
-};
 
 const ALLOWED_CHANNEL = "pkmn-cards";
-const cost = 3.0;
+const cost = 1.0;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -32,7 +23,6 @@ module.exports = {
     let allowedChannel = interaction.guild.channels.cache.find(
       (channel) => channel.name === ALLOWED_CHANNEL
     );
-
     // If the channel doesn't exist, create it
     if (!allowedChannel) {
       try {
@@ -62,7 +52,7 @@ module.exports = {
       });
     }
     // Get the user
-    const { user }  = await getUser(interaction)
+    const { user } = await getUser(interaction);
     if (user.balance < cost) {
       interaction.reply({
         content:
@@ -89,9 +79,10 @@ module.exports = {
       // Call the getSet function and wait for the result
       const pkmnData = await fetchPkmn.getSet(pkmnSet);
       const { name, images, rarity, tcgplayer, set } = pkmnData;
-      await addToCollection(pkmnData, user)
+      const marketValue = getCardValue(tcgplayer.prices);
+      await addToCollection(pkmnData, user, marketValue);
 
-      const marketValue = getValue(tcgplayer.prices);
+
       const embed = {
         title: `Congrats you pulled a ${name}`,
         image: {
@@ -100,7 +91,7 @@ module.exports = {
         fields: [
           { name: "Name:", value: name, inline: true },
           { name: "Rarity:", value: rarity, inline: true },
-          { name: "Market:", value: marketValue, inline: true },
+          { name: "Market:", value: `$${marketValue}`, inline: true },
           {
             name: "More Info",
             value: `[View on TcgPlayer](${tcgplayer.url})`,
@@ -119,13 +110,11 @@ module.exports = {
       await interaction.editReply({
         embeds: [embed],
       });
-      const removeSign = marketValue.replace("$", "");
-      const amount = parseFloat(removeSign);
-      const newAmount = parseFloat(user.balance) + amount;
-      user.balance = newAmount.toFixed(2);
+      /* user.balance = getValue(marketValue, user.balance); */
+      user.collectionWorth = getValue(marketValue, user.collectionWorth);
       await user.save();
       await interaction.followUp({
-        content: `Balance updated: $${user.balance}`,
+        content: `Balance updated: $${user.balance} \nCollection Worth: $${user.collectionWorth}`,
         ephemeral: true,
       });
     } catch (error) {

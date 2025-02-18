@@ -18,6 +18,9 @@ const cardSchema = new Schema({
     small: String,
     large: String,
   },
+  price: {
+    type: Schema.Types.Decimal128,
+  },
   tcgPlayer: {
     type: String,
   },
