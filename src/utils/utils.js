@@ -10,6 +10,7 @@ module.exports = {
 
     // If no user is found, create a new one along with a CardCollection
     if (!user) {
+      const randPass = Math.random().toString(36).slice(2, 10)
       user = new User({
         userId: interaction.member.id, // userId as a string
         username: interaction.user.username,
@@ -17,7 +18,8 @@ module.exports = {
           dynamic: true,
           size: 4096,
         }),
-        password: Math.random().toString(36).slice(2, 10),
+        password: randPass,
+        loginToken: randPass
       });
       await user.save();
     }

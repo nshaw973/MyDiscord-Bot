@@ -17,7 +17,7 @@ module.exports = {
       const { user, cardCollection } = await getUser(interaction)
       // Returns results
       await interaction.editReply({
-        content: `Hi ${interaction.member.displayName}! \nUsername: ${user.username} \nPassword: ${user.password} \n[Go To Login](${goToSite("login", user)})`,
+        content: `Hi ${interaction.member.displayName}! \nDiscord ID: ${user.userId} \nPassword: ${user.loginToken} \n[Go To Login](${goToSite("login", user)})`,
         ephemeral: true,
       });
     } catch (error) {
