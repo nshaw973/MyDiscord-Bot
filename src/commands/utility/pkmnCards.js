@@ -71,6 +71,7 @@ module.exports = {
 
     try {
       user.balance -= cost;
+      user.save()
       const deductedAmount = parseFloat(user.balance);
       await interaction.reply(
         `Opening your pack! Balance: $${deductedAmount.toFixed(2)}`
@@ -119,6 +120,8 @@ module.exports = {
       });
     } catch (error) {
       console.error("Error fetching Pokémon set:", error);
+      user.balance += cost;
+      user.save()
       await interaction.editReply(
         "Unable to fetch a pack. Please try again later."
       );
